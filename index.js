@@ -1,7 +1,7 @@
 const { request, response } = require("express");
 const express = require("express");
 const app = express();
-app.use(express.json())
+app.use(express.json());
 
 let persons = [
   {
@@ -40,17 +40,27 @@ app.get("/api/persons/:id", (request, response) => {
 
 app.delete("/api/persons/:id", (request, response) => {
   let id = Number(request.params.id);
-  persons = persons.filter(person => person.id !== id)
+  persons = persons.filter((person) => person.id !== id);
 
   response.status(204).end();
-})
+});
 
 app.post("/api/persons", (request, response) => {
   let person = request.body;
-  person.id = Math.floor(Math.random() * 100000000);
-  persons = persons.concat(person)
-  response.json(person)
-})
+  if (persons.find((savedPerson) => savedPerson.name === person.name)) {
+    return response.status(400).json({
+      error: "name must be unique",
+    });
+  } else if (person.name && person.number) {
+    person.id = Math.floor(Math.random() * 100000000);
+    persons = persons.concat(person);
+    return response.json(person);
+  } else {
+    return response.status(400).json({
+      error: "content missing",
+    });
+  }
+});
 
 app.get("/info", (request, response) => {
   let d = new Date();
