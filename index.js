@@ -29,14 +29,45 @@ app.get("/api/persons", (request, response) => {
   response.json(persons);
 });
 
+app.get("/api/persons/:id", (request, response) => {
+  let id = Number(request.params.id);
+  let person = persons.find((person) => person.id === id);
+  if (person) {
+    response.json(person);
+  } else response.status(404).end();
+});
+
 app.get("/info", (request, response) => {
   let d = new Date();
-  let days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  let days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  let months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
   response.send(`
     <div>
       <div>Phonebook has info for ${persons.length} people</div>
-      <div>${`${days[d.getDay()]} ${months[d.getMonth()]} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`}</div>
+      <div>${`${days[d.getDay()]} ${
+        months[d.getMonth()]
+      } ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`}</div>
     </div>`);
 });
 
