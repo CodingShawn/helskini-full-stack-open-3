@@ -60,7 +60,6 @@ app.use(errorHandler);
 app.post("/api/persons", (request, response) => {
   let person = request.body;
   if (person.name && person.number) {
-    console.log("creating new peep");
     let newPerson = new Person({
       name: person.name,
       number: person.number,
@@ -81,14 +80,14 @@ app.put("/api/persons/:id", (request, response, next) => {
 
   let person = {
     name: body.name,
-    number: body.number
-  }
+    number: body.number,
+  };
 
-  Person.findByIdAndUpdate(request.params.id, person, {new: true})
-    .then(updatedPerson => {
-      response.json(updatedPerson)
+  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then((updatedPerson) => {
+      response.json(updatedPerson);
     })
-    .catch(error => next(error))
+    .catch((error) => next(error));
 });
 
 app.get("/info", (request, response) => {
@@ -116,13 +115,16 @@ app.get("/info", (request, response) => {
     "November",
     "December",
   ];
-  response.send(`
+  Person.find({}).then((persons) => {
+    response.send(`
     <div>
       <div>Phonebook has info for ${persons.length} people</div>
       <div>${`${days[d.getDay()]} ${
         months[d.getMonth()]
       } ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`}</div>
     </div>`);
+  });
+
 });
 
 const PORT = process.env.PORT;
