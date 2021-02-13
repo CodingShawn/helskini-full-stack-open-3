@@ -5,6 +5,7 @@ const cors = require("cors");
 require('dotenv').config();
 
 const Person = require('./models/person');
+const person = require("./models/person");
 
 const app = express();
 app.use(express.json());
@@ -26,11 +27,12 @@ app.get("/api/persons", (request, response) => {
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  let id = Number(request.params.id);
-  let person = persons.find((person) => person.id === id);
-  if (person) {
-    response.json(person);
-  } else response.status(404).end();
+  Person.findById(request.params.id).then(person => {
+    if (person) {
+      response.json(person);
+    } else response.status(404).end();
+  })
+
 });
 
 app.delete("/api/persons/:id", (request, response) => {
@@ -43,6 +45,7 @@ app.delete("/api/persons/:id", (request, response) => {
 app.post("/api/persons", (request, response) => {
   let person = request.body;
   if (person.name && person.number) {
+    console.log('creating new peep');
     let newPerson = new Person({
       name: person.name,
       number: person.number
@@ -50,6 +53,10 @@ app.post("/api/persons", (request, response) => {
     newPerson.save().then(savedPerson => {
       console.log(`Added ${person.name} with number ${person.number}`);
       response.json(savedPerson)
+    })
+  } else {
+    return response.status(400).json({
+      error: 'fields missing'
     })
   }
 });
