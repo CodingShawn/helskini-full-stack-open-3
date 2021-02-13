@@ -2,14 +2,23 @@ const { request, response } = require("express");
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
-require('dotenv').config();
+require("dotenv").config();
 
-const Person = require('./models/person');
-const person = require("./models/person");
+const Person = require("./models/person");
+
+const errorHandler = (error, request, response, next) => {
+  console.log(error.message);
+
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformmatted id" });
+  }
+
+  next(error);
+};
 
 const app = express();
 app.use(express.json());
-app.use(express.static('build'));
+app.use(express.static("build"));
 morgan.token("content", function (req, res) {
   return JSON.stringify(req.body);
 });
@@ -21,44 +30,48 @@ app.use(
 app.use(cors());
 
 app.get("/api/persons", (request, response) => {
-  Person.find({}).then(people => {
-    response.json(people)
-  })
+  Person.find({}).then((people) => {
+    response.json(people);
+  });
 });
 
-app.get("/api/persons/:id", (request, response) => {
-  Person.findById(request.params.id).then(person => {
-    if (person) {
-      response.json(person);
-    } else response.status(404).end();
-  })
-
+app.get("/api/persons/:id", (request, response, next) => {
+  Person.findById(request.params.id)
+    .then((person) => {
+      if (person) {
+        response.json(person);
+      } else response.status(404).end();
+    })
+    .catch((error) => {
+      console.log(error);
+      return next(error);
+    });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
-  Person.findByIdAndRemove(request.params.id).then(
-    result => {
-      response.status(204).end()
-    }
-  )
+  Person.findByIdAndRemove(request.params.id).then((result) => {
+    response.status(204).end();
+  });
 });
+
+app.use(errorHandler);
 
 app.post("/api/persons", (request, response) => {
   let person = request.body;
   if (person.name && person.number) {
-    console.log('creating new peep');
+    console.log("creating new peep");
     let newPerson = new Person({
       name: person.name,
-      number: person.number
-    })
-    newPerson.save().then(savedPerson => {
+      number: person.number,
+    });
+    newPerson.save().then((savedPerson) => {
       console.log(`Added ${person.name} with number ${person.number}`);
-      response.json(savedPerson)
-    })
+      response.json(savedPerson);
+    });
   } else {
     return response.status(400).json({
-      error: 'fields missing'
-    })
+      error: "fields missing",
+    });
   }
 });
 
