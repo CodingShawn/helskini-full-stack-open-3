@@ -22,6 +22,7 @@ app.use(express.static("build"));
 morgan.token("content", function (req, res) {
   return JSON.stringify(req.body);
 });
+
 app.use(
   morgan(
     ":method :url :status :res[content-length] - :response-time ms :content"
@@ -73,6 +74,21 @@ app.post("/api/persons", (request, response) => {
       error: "fields missing",
     });
   }
+});
+
+app.put("/api/persons/:id", (request, response, next) => {
+  let body = request.body;
+
+  let person = {
+    name: body.name,
+    number: body.number
+  }
+
+  Person.findByIdAndUpdate(request.params.id, person, {new: true})
+    .then(updatedPerson => {
+      response.json(updatedPerson)
+    })
+    .catch(error => next(error))
 });
 
 app.get("/info", (request, response) => {
