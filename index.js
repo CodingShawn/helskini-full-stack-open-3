@@ -11,6 +11,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === "CastError") {
     return response.status(400).send({ error: "malformmatted id" });
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: error.message });
   }
 
   next(error);
@@ -55,25 +57,28 @@ app.delete("/api/persons/:id", (request, response) => {
   });
 });
 
-app.use(errorHandler);
-
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response, next) => {
   let person = request.body;
   if (person.name && person.number) {
     let newPerson = new Person({
       name: person.name,
       number: person.number,
     });
-    newPerson.save().then((savedPerson) => {
-      console.log(`Added ${person.name} with number ${person.number}`);
-      response.json(savedPerson);
-    });
+    newPerson
+      .save()
+      .then((savedPerson) => {
+        console.log(`Added ${person.name} with number ${person.number}`);
+        response.json(savedPerson);
+      })
+      .catch((error) => next(error));
   } else {
     return response.status(400).json({
       error: "fields missing",
     });
   }
 });
+
+app.use(errorHandler);
 
 app.put("/api/persons/:id", (request, response, next) => {
   let body = request.body;
@@ -124,7 +129,6 @@ app.get("/info", (request, response) => {
       } ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`}</div>
     </div>`);
   });
-
 });
 
 const PORT = process.env.PORT;
