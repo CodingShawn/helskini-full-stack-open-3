@@ -1,17 +1,21 @@
-const { request, response } = require("express");
-const express = require("express");
-const morgan = require("morgan");
-const cors = require("cors");
-require("dotenv").config();
+/* eslint-disable no-console */
+/* eslint-disable func-names */
+/* eslint-disable no-unused-vars */
+/* eslint-disable consistent-return */
+/* eslint-disable prefer-arrow-callback */
+const express = require('express');
+const morgan = require('morgan');
+const cors = require('cors');
+require('dotenv').config();
 
-const Person = require("./models/person");
+const Person = require('./models/person');
 
 const errorHandler = (error, request, response, next) => {
   console.log(error.message);
 
-  if (error.name === "CastError") {
-    return response.status(400).send({ error: "malformmatted id" });
-  } else if (error.name === "ValidationError") {
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformmatted id' });
+  } if (error.name === 'ValidationError') {
     return response.status(400).json({ error: error.message });
   }
 
@@ -20,25 +24,25 @@ const errorHandler = (error, request, response, next) => {
 
 const app = express();
 app.use(express.json());
-app.use(express.static("build"));
-morgan.token("content", function (req, res) {
+app.use(express.static('build'));
+morgan.token('content', function (req, res) {
   return JSON.stringify(req.body);
 });
 
 app.use(
   morgan(
-    ":method :url :status :res[content-length] - :response-time ms :content"
-  )
+    ':method :url :status :res[content-length] - :response-time ms :content',
+  ),
 );
 app.use(cors());
 
-app.get("/api/persons", (request, response) => {
+app.get('/api/persons', (request, response) => {
   Person.find({}).then((people) => {
     response.json(people);
   });
 });
 
-app.get("/api/persons/:id", (request, response, next) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
     .then((person) => {
       if (person) {
@@ -51,16 +55,16 @@ app.get("/api/persons/:id", (request, response, next) => {
     });
 });
 
-app.delete("/api/persons/:id", (request, response) => {
-  Person.findByIdAndRemove(request.params.id).then((result) => {
+app.delete('/api/persons/:id', (request, response) => {
+  Person.findByIdAndRemove(request.params.id).then(() => {
     response.status(204).end();
   });
 });
 
-app.post("/api/persons", (request, response, next) => {
-  let person = request.body;
+app.post('/api/persons', (request, response, next) => {
+  const person = request.body;
   if (person.name && person.number) {
-    let newPerson = new Person({
+    const newPerson = new Person({
       name: person.name,
       number: person.number,
     });
@@ -73,17 +77,17 @@ app.post("/api/persons", (request, response, next) => {
       .catch((error) => next(error));
   } else {
     return response.status(400).json({
-      error: "fields missing",
+      error: 'fields missing',
     });
   }
 });
 
 app.use(errorHandler);
 
-app.put("/api/persons/:id", (request, response, next) => {
-  let body = request.body;
+app.put('/api/persons/:id', (request, response, next) => {
+  const { body } = request;
 
-  let person = {
+  const person = {
     name: body.name,
     number: body.number,
   };
@@ -95,43 +99,44 @@ app.put("/api/persons/:id", (request, response, next) => {
     .catch((error) => next(error));
 });
 
-app.get("/info", (request, response) => {
-  let d = new Date();
-  let days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
+app.get('/info', (request, response) => {
+  const d = new Date();
+  const days = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
   ];
-  let months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
   Person.find({}).then((persons) => {
     response.send(`
     <div>
       <div>Phonebook has info for ${persons.length} people</div>
       <div>${`${days[d.getDay()]} ${
-        months[d.getMonth()]
-      } ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`}</div>
+    months[d.getMonth()]
+  } ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`}</div>
     </div>`);
   });
 });
 
-const PORT = process.env.PORT;
+const { PORT } = process.env;
 app.listen(PORT, () => {
+  // eslint-disable-next-line no-console
   console.log(`Server running on port ${PORT}`);
 });
